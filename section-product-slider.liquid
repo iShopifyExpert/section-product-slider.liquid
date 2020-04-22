@@ -1,0 +1,290 @@
+{% assign c = collections[section.settings.collection] %}
+<div class="custom-feature-products-slider-sections">
+  <div class="custom-feature-products-slider-container">
+    {% if section.settings.heading != blank %}
+    <div class="custom-feature-products-slider-heading-container">
+      <div class="custom-feature-products-slider-heading">{{ section.settings.heading }}</div>
+    </div>
+    {% endif %}
+    {% if section.settings.subheading != blank %}
+    <div class="custom-feature-products-slider-subheading-container">
+      {{ section.settings.subheading }}
+    </div>
+    {% endif %}
+    <div class="custom-feature-products-slider-prev"><i class="fa fa-angle-left"></i></div>
+    <div class="custom-feature-products-slider-next"><i class="fa fa-angle-right"></i></div>
+    <div class="custom-feature-products-slider-content">
+      <div class="owl-carousel owl-theme owl-feature-products-slider">
+        {% for product in c.products %}
+        <div class="item">
+          <div class="custom-feature-products-slider-item">
+            <a href="{{ product.url }}">
+              <img src="{{ product | img_url: 'master'}}" alt="" class="custom-feature-products-slider-image" />
+              <p class="custom-feature-products-slider-title">{{ product.title }}</p>{% assign product_idd = product.id %}
+              <p class="custom-feature-products-slider-price">{{ product.price | money }}<span class="custom-feature-products-slider-compare-price">{% if product.compare_at_price != blank and product.compare_at_price > product.price %}<i> - </i> Sale{% endif %}</span></p>{% assign product_id = product.id | prepend: 'AddToCartForm-' %}
+            </a>
+            {% form 'product', product, id: product_id %}
+            {% comment %}
+            <select name="id">
+              {% for variant in product.variants %}
+              {% if variant.available == true %}
+              <option value="{{variant.id}}"> {{ variant.title }} for {{ variant.price | money_with_currency }}</option>
+              {% else %}
+              <option disabled="disabled"> {{ variant.title }} - sold out!</option>
+              {% endif %}
+              {% endfor %}
+            </select> {% endcomment %}
+            <select name="id" id="productSelect-{{product_idd}}" class="product-single__variants">
+              {% for variant in product.variants %}
+              {% if variant.available %}
+              <option {% if variant == product.selected_or_first_available_variant %} selected="selected" {% endif %} data-sku="{{ variant.sku }}" value="{{ variant.id }}">{{ variant.title }} - {{ variant.price | money_with_currency }}</option>
+              {% else %}
+              <option disabled="disabled">
+                {{ variant.title }} - {{ 'products.product.sold_out' | t }}
+              </option>
+              {% endif %}
+              {% endfor %}
+            </select>
+            {% comment %}
+            {% if product.available and product.variants.size > 1 %}
+            {% for option in product.options %}
+            {% include 'swatch' with option %}
+            {% endfor %}
+            {% endif %}                    
+            <script>
+              jQuery(function() {
+                jQuery('.swatch :radio').change(function() {
+                  var optionIndex = jQuery(this).closest('.swatch').attr('data-option-index');
+                  var optionValue = jQuery(this).val();
+                  jQuery(this)
+                  .closest('form')
+                  .find('.single-option-selector')
+                  .eq(optionIndex)
+                  .val(optionValue)
+                  .trigger('change');
+                });
+              });
+            </script>{% endcomment %}
+           
+
+            <div class="product-quantity" style="display: none;">
+              <input type="text" value="1" name="quantity" class="cart-plus-minus-box">
+            </div> 
+            {% if product.available %}
+            <button type="button" class="ajax-spin-cart custom-fp-cart-btn" id="custom-atc">
+              <span>
+                <span class="cart-title" id="AddToCartText-{{product_idd}}">{{ settings.cart_button_title }}</span>
+                <span class="cart-loading">{{ settings.wait_title }}</span>
+                <span class="cart-added">{{ settings.added_title }}</span>
+                <span class="cart-unavailable">{{ settings.unavailable_title }}</span>
+              </span>
+            </button>
+            {% else %}
+            <button class="cart-disable custom-fp-cart-btn-disable" type="button">
+              <span class="cart-text ">{{ settings.soldout_button_title }}</span>
+            </button>
+            {% endif %}
+          </div>
+          {% endform %}
+          <script> jQuery('.custom-fp-cart-btn').click(function(e) { e.preventDefault(); Shopify.addItemFromFormStart('AddToCartForm-{{ product.id }}', {{ product.id }}); }); </script>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .custom-feature-products-slider-subheading-container{
+
+  }
+  .custom-feature-products-slider-subheading-container p{
+    font-family: 'Raleway', sans-serif;
+    font-size: 20px;
+    text-align: center;
+    font-weight: 600;
+  }
+  .custom-feature-products-slider-subheading-container p a{
+    color: #69c3ef !important;
+    text-decoration: underline;
+  }
+  .custom-feature-products-slider-heading-container{
+    width: 100%;
+    border-top: 2px solid #660099;
+    padding: 25px 0;
+  }
+  .custom-feature-products-slider-heading{
+    font-family: 'Arvo', serif;
+    background: #660099;
+    color: white;
+    max-width: 280px;
+    margin: 0 auto;
+    font-size: 24px;
+    padding: 10px 0;
+    text-align: center;
+    margin-top: -55px;
+    line-height: 40px;
+  }
+  .custom-fp-cart-btn{
+    text-align: center;
+    min-width: 50%;
+    border: 1px solid transparent;
+    padding: 8px 0;
+    margin: 0 auto;
+    display: block;
+    border-radius: 20px;
+    text-transform: uppercase;
+    font-size: 11px;
+    font-family: 'Montserrat', sans-serif;
+    box-shadow: 0px 0px 3px #00000078;
+    margin-top: 12px;
+    transition: 0.3s;
+  }
+  .custom-fp-cart-btn:hover{
+    color: white;
+    background:  #660099;
+    transition: 0.3s;
+  }
+  .custom-fp-cart-btn-disable{
+    text-align: center;
+    min-width: 50%;
+    border: 1px solid transparent;
+    padding: 8px 0;
+    margin: 0 auto;
+    display: block;
+    border-radius: 20px;
+    text-transform: uppercase;
+    font-size: 11px;
+    font-family: 'Montserrat', sans-serif;
+    box-shadow: 0px 0px 3px #00000078;
+    margin-top: 12px;
+    transition: 0.3s;
+  }
+  .custom-feature-products-slider-prev{
+    width: 28px;
+    height: 28px;
+    border: 1px solid transparent;
+    display: grid;
+    place-content: center;
+    border-radius: 50%;
+    box-shadow: 0px 0px 4px #660099;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    left: 10px;
+    color:  #660099;
+    transition: 0.3s;
+  }
+  .custom-feature-products-slider-next{
+    width: 28px;
+    height: 28px;
+    border: 1px solid transparent;
+    display: grid;
+    place-content: center;
+    border-radius: 50%;
+    box-shadow: 0px 0px 4px #660099;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    right: 10px;
+    color:  #660099;
+    transition: 0.3s;
+  }
+  .custom-feature-products-slider-prev:hover,
+  .custom-feature-products-slider-next:hover{
+    background:  #660099;
+    color: white;
+    transition: 0.3s;
+  }
+  .custom-feature-products-slider-item{
+    padding: 8px;
+    text-align: center;
+  }
+  .custom-feature-products-slider-sections{
+    padding: 80px 0 35px 0;
+  }
+  .custom-feature-products-slider-container{
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 50px;
+    position: relative;
+  }
+  .custom-feature-products-slider-content{
+    max-width: 1070px;
+    margin: 0 auto;
+  }
+  .custom-feature-products-slider-image{
+    max-width: 100%;
+    height: auto;
+  }
+  .custom-feature-products-slider-title{
+    font-family: 'Arvo', serif;
+    color: black;
+    text-align: center;
+    font-size: 14px;
+    margin: 0;
+    padding-top: 10px;
+  }
+  .custom-feature-products-slider-price{
+    color: black;
+    font-family: 'Arvo', serif;
+    font-size: 18px;
+    text-align: center;
+    margin: 0;
+    padding-top: 5px;
+  }
+  .custom-feature-products-slider-compare-price{
+    color: red;
+    text-transform: uppercase;
+  }
+  .custom-feature-products-slider-compare-price i{
+    color: black; 
+  }
+  @media screen and (max-width: 480px){
+    .custom-feature-products-slider-heading {
+      font-size: 18px;
+    }
+  }
+</style>
+
+{% schema %}
+{
+"name": "Feature Product Slider",
+"settings": [
+{
+"id": "heading",
+"type": "text",
+"label": "Heading",
+"default": "Ready to Ship Items"
+},
+{
+"id": "subheading",
+"type": "richtext",
+"label": "Subheading",
+"default": "<p>Can't wait for a custom order? CLICK HERE to browse our ready to ship items.</p>"
+},
+{
+"type": "collection",
+"id": "collection",
+"label": "Collection"
+}
+],
+"presets": [
+{
+"name": "Custom Feature Product Slider",
+"category": "Humbird"
+
+}
+]
+}
+{% endschema %}
+
+{% stylesheet %}
+{% endstylesheet %}
+
+{% javascript %}
+{% endjavascript %}
